@@ -48,7 +48,7 @@ class Token:
 #string = o codigo fonte bruto que sera lido, listaTokens = uma lista que será preenchida com os
 #tokens encontrados, comeco e atual são posições dos caracteres presentes nos lexemas sendo analisados
 
-class Scanner:
+class Scanner(object):
 
     def __init__(self, string):
         self.string = string
@@ -65,10 +65,11 @@ class Scanner:
         while(not self.final()):
             self.comeco = self.atual
             self.scanTokens()
-            
+
+    #funcao responsável por reconhecer lexemas
     def scanToken(self):
         c = self.avancar()
-
+        #lexemas simples
         if c == '(':
             self.addToken("PAREN_ESQ")
         elif c == ')':
@@ -89,6 +90,7 @@ class Scanner:
             self.addToken("PONTOVIRGULA")
         elif c == '*':
             self.addToken("MULTIPLICACAO")
+        #lexemas de comparação
         elif c == '!':
             if self.match('='):
                 self.addToken("DIFERENTE")
@@ -109,10 +111,49 @@ class Scanner:
                 self.addToken("MAIORIGUAL")
             else:
                 self.addToken("MAIORQUE")
+        #lexemas que devem ser pulados
+        elif c == ' ':
+            None
+        elif c == '\r':
+            None
+        elif c == '\t':
+            None
+        elif c == '\n':
+            self.linha = self.linha + 1   
 
         else:
-            print("Erro na linha", self.linha, "Caractere", c, "invalido")
-            raise Exception()
+            #literais numericos
+            if self.digito(c):
+                self.numero()
+            elif self.alfa(c):
+                self.identificador()
+            else:
+                print("Erro na linha", self.linha, "Caractere", c, "invalido")
+                raise Exception()
+
+        def identificador(self):
+            while self.alfaNum(self.olhar()):
+                self.avancar()
+            self.addToken("Identificador: ",str(self.string[self.comeco:self.atual]))
+
+        def alfaNum(self, c):
+            return self.alfa(c) or self.digito(c)
+
+        def alfa(self,c):
+            return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or c == '_'
+
+        def numero(self):
+            while self.digito(self.olhar()):
+                self.avancar()
+            self.addToken("Numero: ",int(self.string[self.comeco:self.atual])            
+
+        def digito(self,c):
+            return c >= '0' and c <= '9'
+
+        def olhar(self):
+            if self.final():
+                return '\0'
+            return self.string[self.atual]
 
         def match(self, esperado):
             if self.final():
