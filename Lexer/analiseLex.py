@@ -1,38 +1,5 @@
-'''enum TokenType {                                   
-  // Single-character tokens.                      
-  LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-  COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, 
-
-  // One or two character tokens.                  
-  BANG, BANG_EQUAL,                                
-  EQUAL, EQUAL_EQUAL,                              
-  GREATER, GREATER_EQUAL,                          
-  LESS, LESS_EQUAL,                                
-
-  // Literals.                                     
-  IDENTIFIER, STRING, NUMBER,                      
-
-  // Keywords.                                     
-  AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,  
-  PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,    
-
-  EOF                                              
-}'''
-
 #Necessario definir a classe dos tokens, que contem as seguintes informações sobre o token
 #tipo, lexema, valor literal e linha
-
-class Token:
-
-    def __init__(self, type, lexeme, literal, line):
-        self.tipo = type
-        self.lexema = lexeme
-        self.literal = literal
-        self.linha = line
-
-    def __str__(self):
-        return str(self.tipo)+", "+str(self.lexema)+", "+str(self.literal)+", "+str(self.linha)
-
 class Token:
 
     def __init__(self, tipo, lexema, literal, linha):
@@ -42,12 +9,11 @@ class Token:
         self.linha = linha
 
     def __str__(self):
-        return str(self.tipo)+" "+str(self.lexema)+" "+str(self.literal)+" "+str(self.linha)
+        return str(self.tipo)+" "+str(self.lexema)+" "+str(self.linha)
 
 #classe do Scanner, que sera usado para percorrer a entrada e pegar todos os tokens existentes
 #string = o codigo fonte bruto que sera lido, listaTokens = uma lista que será preenchida com os
 #tokens encontrados, comeco e atual são posições dos caracteres presentes nos lexemas sendo analisados
-
 class Scanner(object):
 
     def __init__(self, string):
@@ -64,7 +30,10 @@ class Scanner(object):
     def scanTokens(self):
         while(not self.final()):
             self.comeco = self.atual
-            self.scanTokens()
+            self.scanToken()            
+
+        self.palavrasReservadas()
+        return self.listaTokens        
 
     #funcao responsável por reconhecer lexemas
     def scanToken(self):
@@ -86,6 +55,11 @@ class Scanner(object):
             self.addToken("MENOS")
         elif c == '+':
             self.addToken("MAIS")
+        elif c == ':':
+            if self.match('='):
+                self.addToken("ATRIBUICAO")
+            else:
+                self.addToken("DECLARACAO")
         elif c == ';':
             self.addToken("PONTOVIRGULA")
         elif c == '*':
@@ -99,12 +73,10 @@ class Scanner(object):
         elif c == '=':
             if self.match('='):
                 self.addToken("COMPARADORIGUAL")
-            else:
-                self.addToken("ATRIBUCAO")
         elif c == '<':
                if self.match('='):
                    self.addToken("MENORIGUAL")
-                else:
+               else:
                     self.addToken("MENORQUE")
         elif c == '>':
             if self.match('='):
@@ -131,45 +103,101 @@ class Scanner(object):
                 print("Erro na linha", self.linha, "Caractere", c, "invalido")
                 raise Exception()
 
-        def identificador(self):
-            while self.alfaNum(self.olhar()):
-                self.avancar()
-            self.addToken("Identificador: ",str(self.string[self.comeco:self.atual]))
+    #Lista com todas as palavras reservadas, esta funcao checa todos os tokens
+    #adicionados como IDENTIFICADOR para ver se eles são na verdade palavras
+    #reservadas da linguagem
+    def palavrasReservadas(self):
+        for k in self.listaTokens:
+            if k.tipo == "IDENTIFICADOR":
+                if k.lexema == "programa":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "var":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "inteiro":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "booleano":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "procedimento":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "funcao":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "inicio":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "fim":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "se":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "entao":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "senao":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "enquanto":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "faca":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "leia":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "escreva":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "ou":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "div":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "e":
+                    k.tipo = k.lexema.upper()
+                if k.lexema == "verdadeiro" or k.lexema == "falso" or k.lexema == "nao":
+                    k.tipo = "BOOLEANO"
 
-        def alfaNum(self, c):
-            return self.alfa(c) or self.digito(c)
+    #Funcão responsável por adicionar os tokens de tipo IDENTIFICADOR, checando se
+    #eles são construidos de forma alfanumerica
+    def identificador(self):
+        while self.alfaNum(self.olhar()):
+            self.avancar()
+        self.addToken("IDENTIFICADOR",str(self.string[self.comeco:self.atual]))
 
-        def alfa(self,c):
-            return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or c == '_'
+    def alfaNum(self, c):
+        return self.alfa(c) or self.digito(c)
 
-        def numero(self):
-            while self.digito(self.olhar()):
-                self.avancar()
-            self.addToken("Numero: ",int(self.string[self.comeco:self.atual])            
+    def alfa(self,c):
+        return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or c == '_'
 
-        def digito(self,c):
-            return c >= '0' and c <= '9'
+    def numero(self):
+        while self.digito(self.olhar()):
+            self.avancar()
+        self.addToken("NUMERO: ",int(self.string[self.comeco:self.atual]))            
 
-        def olhar(self):
-            if self.final():
-                return '\0'
-            return self.string[self.atual]
+    def digito(self,c):
+        return c >= '0' and c <= '9'
 
-        def match(self, esperado):
-            if self.final():
-                return False
-            elif self.string[self.atual] != esperado:
-                return False
+    def olhar(self):
+        if self.final():
+            return '\0'
+        return self.string[self.atual]
 
-            self.atual = self.atual + 1
-            return True
+    def match(self, esperado):
+        if self.final():
+            return False
+        elif self.string[self.atual] != esperado:
+            return False
 
-        def avancar(self):
-            self.atual = self.atual + 1
-            return self.string[self.atual - 1]
+        self.atual = self.atual + 1
+        return True
 
-        def addToken(self, tipo, literal):
-            literal = None
-            string2 = self.string[self.comeco:self.atual]
-            self.listaTokens.append(Token(tipo,string2,literal,self.linha))
+    def avancar(self):
+        self.atual = self.atual + 1
+        return self.string[self.atual - 1]
+
+    #Função que adiciona os tokens na lista de Tokens da classe Scanner
+    def addToken(self, tipo, literal = None):
+        literal = None
+        string2 = self.string[self.comeco:self.atual]
+        self.listaTokens.append(Token(tipo,string2,literal,self.linha))
+
+#================== main temporário ==================
+sentinel = ''
+programa = '\n'.join(iter(input, sentinel))
+scan = Scanner(programa)
+tokens = scan.scanTokens()
+for linha in tokens:
+    print(linha)
     
