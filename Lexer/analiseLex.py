@@ -9,8 +9,9 @@ class Token:
         self.linha = linha
 
     def __str__(self):
-        return str(self.tipo)+" "+str(self.lexema)+" "+str(self.linha)
-
+        #return str(self.tipo)+" "+str(self.lexema)+" Linha: "+str(self.linha)
+        if self.lexema:
+            return f'{self.tipo}:{self.lexema} Linha: {self.linha}'
 #classe do Scanner, que sera usado para percorrer a entrada e pegar todos os tokens existentes
 #string = o codigo fonte bruto que sera lido, listaTokens = uma lista que será preenchida com os
 #tokens encontrados, comeco e atual são posições dos caracteres presentes nos lexemas sendo analisados
@@ -164,7 +165,7 @@ class Scanner(object):
     def numero(self):
         while self.digito(self.olhar()):
             self.avancar()
-        self.addToken("NUMERO: ",int(self.string[self.comeco:self.atual]))            
+        self.addToken("NUMERO",int(self.string[self.comeco:self.atual]))            
 
     def digito(self,c):
         return c >= '0' and c <= '9'
@@ -193,11 +194,106 @@ class Scanner(object):
         string2 = self.string[self.comeco:self.atual]
         self.listaTokens.append(Token(tipo,string2,literal,self.linha))
 
-#================== main temporário ==================
-sentinel = ''
-programa = '\n'.join(iter(input, sentinel))
-scan = Scanner(programa)
-tokens = scan.scanTokens()
-for linha in tokens:
-    print(linha)
+#================== PARSER TEMPORARIO ================#
+
+#########NODES################
+class NoNumero:
+
+    def __init__(self, token):
+        self.token = token
+
+    def __str__(self):
+        return f'({self.token.tipo}:{self.token.lexema}'
+
+class NoOperacao:
+
+    def __init__(self, esq, op, dire):
+        self. esq = esq
+        self.op = op
+        self.dire = dire
+
+    def __str__(self):
+        return f'{self.esq}, {self.op}, {self.dire})'
+
+###########PARSE RESULTADO#######
+
+class ParseResult:
+    def __init__(self):
+        self.error = None
+        self.node = None
+
+    def register(self, res):
+        if isinstance(res, ParseResult):
+            if res.error: self.error = res.error
+            return res.node
+
+    def success(self, node):
+        self.node = node
+        return self
+
+    def failure(self, error):
+        self.error = error
+        return self
+
+###########PARSER##############
+
+class Parser:
+
+    def __init__(self, listaTokens):
+        self.listaTokens = listaTokens
+        self. indexToken = -1
+        self.avancar()
+    
+    def avancar(self):
+        self.indexToken += 1
+        if self.indexToken < len(self.listaTokens):
+            self.tokenAtual = self.listaTokens[self.indexToken]
+        return self.tokenAtual
+
+    def parse(self):
+        resultado = self.expressao()
+        return resultado
+
+    def fator(self):
+        res = ParseResult()
+        token = self.tokenAtual
+
+        if token.tipo == "NUMERO":
+            self.avancar()
+            return NoNumero(token)
+
+    def termo(self):
+        return self.opBinaria(self.fator, ('MULTIPLICACAO', 'DIV'))
+
+    def expressao(self):
+        return self.opBinaria(self.termo, ('MAIS', 'MENOS'))
+
+    def opBinaria(self, funcao, operacoes):
+        no_esq = funcao()
+
+        while self.tokenAtual.tipo in operacoes:
+            tokenOp = self.tokenAtual.tipo
+            self.avancar()
+            no_dire = funcao()
+            no_esq = NoOperacao(no_esq, tokenOp, no_dire)
+
+        return no_esq
+
+#================== main temporário ==================#
+def run():
+    sentinel = ''
+    programa = '\n'.join(iter(input, sentinel))
+    scan = Scanner(programa)
+    tokens = scan.scanTokens()
+    for token in tokens:
+        print(token)
+
+    #Generate AST
+    parser = Parser(tokens)
+    ast = parser.parse()
+    
+    return ast
+
+result = run()
+print (result)
     
