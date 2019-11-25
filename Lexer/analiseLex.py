@@ -203,9 +203,9 @@ class NoNumero:
         self.token = token
 
     def __str__(self):
-        return f'({self.token.tipo}:{self.token.lexema}'
+        return f'{self.token.tipo}:{self.token.lexema}'
 
-class NoOperacao:
+class NoOperacaoBinaria:
 
     def __init__(self, esq, op, dire):
         self. esq = esq
@@ -213,28 +213,17 @@ class NoOperacao:
         self.dire = dire
 
     def __str__(self):
-        return f'{self.esq}, {self.op}, {self.dire})'
+        return f'({self.esq}, {self.op}, {self.dire})'
 
-###########PARSE RESULTADO#######
 
-class ParseResult:
-    def __init__(self):
-        self.error = None
-        self.node = None
+class NoOperacaoUnaria:
 
-    def register(self, res):
-        if isinstance(res, ParseResult):
-            if res.error: self.error = res.error
-            return res.node
+    def __init__(self, op, no):
+        self.op = op
+        self.no = no
 
-    def success(self, node):
-        self.node = node
-        return self
-
-    def failure(self, error):
-        self.error = error
-        return self
-
+    def __str__(self):
+        return f'({self.op}, {self.no})'
 ###########PARSER##############
 
 class Parser:
@@ -255,12 +244,25 @@ class Parser:
         return resultado
 
     def fator(self):
-        res = ParseResult()
         token = self.tokenAtual
 
         if token.tipo == "NUMERO":
             self.avancar()
             return NoNumero(token)
+
+        elif token.tipo == "MAIS" or token.tipo == "MENOS":
+            self.avancar()
+            fator = self.fator()
+            return NoOperacaoUnaria(token, fator)
+
+        elif token.tipo == "PAREN_ESQ":
+            self.avancar()
+            expressao = self.expressao()
+            if self.token_atual.tipo == "PAREN_DIR":
+                self.avancar()
+                return expr
+            else:
+                return print("Erro de sintaxe")
 
     def termo(self):
         return self.opBinaria(self.fator, ('MULTIPLICACAO', 'DIV'))
@@ -275,9 +277,10 @@ class Parser:
             tokenOp = self.tokenAtual.tipo
             self.avancar()
             no_dire = funcao()
-            no_esq = NoOperacao(no_esq, tokenOp, no_dire)
+            no_esq = NoOperacaoBinaria(no_esq, tokenOp, no_dire)
 
         return no_esq
+
 
 #================== main temporário ==================#
 def run():

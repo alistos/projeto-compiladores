@@ -1,0 +1,12 @@
+programa MODELO;
+var x, t, z: inteiro;
+    logica: booleano;
+
+procedimento soma;
+inicio
+    z := +x+y;
+fim
+
+inicio
+    escreva(z);
+fim
