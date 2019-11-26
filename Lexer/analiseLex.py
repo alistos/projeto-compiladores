@@ -9,9 +9,9 @@ class Token:
         self.linha = linha
 
     def __str__(self):
-        #return str(self.tipo)+" "+str(self.lexema)+" Linha: "+str(self.linha)
         if self.lexema:
             return f'{self.tipo}:{self.lexema} Linha: {self.linha}'
+        
 #classe do Scanner, que sera usado para percorrer a entrada e pegar todos os tokens existentes
 #string = o codigo fonte bruto que sera lido, listaTokens = uma lista que será preenchida com os
 #tokens encontrados, comeco e atual são posições dos caracteres presentes nos lexemas sendo analisados
@@ -197,7 +197,7 @@ class Scanner(object):
 #================== PARSER TEMPORARIO ================#
 
 #########NODES################
-class NoNumero:
+class NoToken:
 
     def __init__(self, token):
         self.token = token
@@ -215,7 +215,6 @@ class NoOperacaoBinaria:
     def __str__(self):
         return f'({self.esq}, {self.op}, {self.dire})'
 
-
 class NoOperacaoUnaria:
 
     def __init__(self, op, no):
@@ -224,6 +223,28 @@ class NoOperacaoUnaria:
 
     def __str__(self):
         return f'({self.op}, {self.no})'
+
+class NoDeclaracao:
+
+    def __init__(self, var, nomeVar, expr):
+        self.var = var
+        self.nomeVar = nomeVar
+        self.expr = expr
+
+    def __str__(self):
+        return f'({self.var}, {self.nomeVar}, {self.expr})'
+    
+class NoAtribuicao:
+
+    def __init__(self, nomeVar, op, expr, ptvir):
+        self.nomeVar = nomeVar
+        self.op = op
+        self.expr = expr
+        self.ptvir = ptvir
+
+    def __str__(self):
+        return f'({self.nomeVar}, {self.op}, {self.expr}, {self.ptvir})'
+        
 ###########PARSER##############
 
 class Parser:
@@ -248,7 +269,7 @@ class Parser:
 
         if token.tipo == "NUMERO":
             self.avancar()
-            return NoNumero(token)
+            return NoToken(token)
 
         elif token.tipo == "MAIS" or token.tipo == "MENOS":
             self.avancar()
@@ -268,19 +289,66 @@ class Parser:
         return self.opBinaria(self.fator, ('MULTIPLICACAO', 'DIV'))
 
     def expressao(self):
+        #Tratamento de declaracao de variavel
+        if self.tokenAtual.tipo == "VAR":
+            var = self.tokenAtual
+            var = NoToken(var)
+            self.avancar()
+
+            if self.tokenAtual.tipo != "IDENTIFICADOR":
+                print("Erro de sintaxe no identificador")
+
+            nomeVar = self.tokenAtual
+            nomeVar = NoToken(nomeVar)
+            self.avancar()
+
+            if self.tokenAtual.tipo != "DECLARACAO":
+                print("Erro de sintaxe na declaracao")
+
+            self.avancar()
+
+            if self.tokenAtual.tipo != "INTEIRO" or self.tokenAtual.tipo != "BOOLEANO":
+                print("Erro de sintaxe no tipo da variavel")
+
+            tipoVar = self.tokenAtual
+            tipoVar = NoToken(tipoVar)
+            self.avancar()
+            return NoDeclaracao(var, nomeVar, tipoVar)
+        
+        #Tratamento de atribuicao de variavel
+        if self.tokenAtual.tipo == "IDENTIFICADOR":
+
+            nomeVar = self.tokenAtual
+            nomeVar = NoToken(nomeVar)
+            self.avancar()
+
+            if self.tokenAtual.tipo != "ATRIBUICAO":
+               print("Erro de sintaxe na atribuicao")
+
+            op = self.tokenAtual
+            op = NoToken(op)
+            self.avancar()
+            expr = self.expressao()
+            ptvir = self.tokenAtual
+            ptvir = NoToken(ptvir)
+
+            if self.tokenAtual.tipo != "PONTOVIRGULA":
+                print("Erro de sintaxe na atribuicao, falta ; no final")
+                
+            return NoAtribuicao(nomeVar, op, expr, ptvir)
+        
         return self.opBinaria(self.termo, ('MAIS', 'MENOS'))
 
     def opBinaria(self, funcao, operacoes):
-        no_esq = funcao()
+        no_esq = funcao()        
 
-        while self.tokenAtual.tipo in operacoes:
+        while self.tokenAtual.tipo in operacoes:# or self.tokenAtual.tipo != 'PONTOVIRGULA':
             tokenOp = self.tokenAtual.tipo
             self.avancar()
             no_dire = funcao()
             no_esq = NoOperacaoBinaria(no_esq, tokenOp, no_dire)
 
         return no_esq
-
 
 #================== main temporário ==================#
 def run():
