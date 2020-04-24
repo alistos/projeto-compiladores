@@ -1,35 +1,37 @@
-ï»¿<programa> ::= programa <identificador> ; <bloco> .
+<programa> ::= programa <identificador> ; <bloco> .
 
 
-<bloco> ::= [<etapa de declaraÃ§Ã£o de variÃ¡veis>]
-[<etapa de declaraÃ§Ã£o de sub-rotinas>]
+<bloco> ::= [<etapa de declaração de variáveis>]
+[<etapa de declaração de sub-rotinas>]
 <comandos>
 
 
-/////////DECLARAÃ‡Ã•ES///////////////
+/////////DECLARAÇÕES///////////////
 
 
-<etapa de declaraÃ§Ã£o de variÃ¡veis> ::= var <declaraÃ§Ã£o de variÃ¡veis> ;
-{<declaraÃ§Ã£o de variÃ¡veis>;}
+<etapa de declaração de variáveis> ::= var <declaração de variáveis> ;
+{<declaração de variáveis>;}
 
 
-<declaraÃ§Ã£o de variÃ¡veis> ::= <identificador> {, <identificador>} : <tipo>
+<declaração de variáveis> ::= <identificador> {, <identificador>} : <tipo>
 
 
 <tipo> ::= (inteiro | booleano)
 
 
-<etapa de declaraÃ§Ã£o de sub-rotinas> ::= (<declaraÃ§Ã£o de procedimento>;|
-<declaraÃ§Ã£o de funÃ§Ã£o>;)
-{<declaraÃ§Ã£o de procedimento>;|
-<declaraÃ§Ã£o de funÃ§Ã£o>;}
+<etapa de declaração de sub-rotinas> ::= (<declaração de procedimento>;|
+<declaração de função>;)
+{<declaração de procedimento>;|
+<declaração de função>;}
 
 
-<declaraÃ§Ã£o de procedimento> ::= procedimento <identificador>;
+<declaração de procedimento> ::= procedimento <identificador>; |
+procedimento <identificador> "("<declaração de variáveis>")";
 <bloco>
 
 
-<declaraÃ§Ã£o de funÃ§Ã£o> ::= funcao <identificador>: <tipo>;
+<declaração de função> ::= funcao <identificador>: <tipo>; |
+funcao <identificador>: <tipo> "("<Declaração de variáveis>")";
 <bloco>
 
 
@@ -41,71 +43,84 @@
 fim
 
 
-<comando> ::= (<atribuiÃ§Ã£o_chprocedimento>|
+<comando> ::= (<atribuição_chprocedimento>|
+<atribuição_chfunção> |
 <comando condicional> |
+<comando incondicional> |
 <comando enquanto> |
-<comando leitura> |
+<comando retorna> |
 <comando escrita> |
 <comandos>)
 
 
-<atribuiÃ§Ã£o_chprocedimento>::= (<comando atribuicao>|
+<atribuição_chprocedimento>::= (<comando atribuicao>|
 <chamada de procedimento>)
 
+<atribuição_chfunção> ::= (<comando atribuicao> <comando retorna> | <chamada de função>)
 
-<comando atribuicao> ::= <identificador> := <expressÃ£o>
+
+<comando atribuicao> ::= <identificador> := <expressão>
 
 
-<chamada de procedimento> ::= <identificador>
-<comando condicional> ::= se <expressÃ£o>
+<chamada de procedimento> ::= <identificador> |
+<identificador>(<variável>{,<variável})
+
+<chamada de função> ::= <identificador> |
+<identificador>(<variável>{,<variável>}
+
+<comando condicional> ::= se <expressão>
 entao <comando>
 [senao <comando>]
 
+<comando incondicional> ::= (continue | break)
 
-<comando enquanto> ::= enquanto <expressÃ£o> faca <comando>
+
+<comando enquanto> ::= enquanto <expressão> faca <comando>
 
 
-<comando leitura> ::= leia ( <identificador> )
+<comando retorna> ::= retorna ( <identificador> )
 
 
 <comando escrita> ::= escreva ( <identificador> )
 
 
-///////////////////EXPRESSÃ•ES/////////////////////
+///////////////////EXPRESSÕES/////////////////////
 
 
-<expressÃ£o>::= <expressÃ£o simples> [<operador relacional><expressÃ£o simples>]
+<expressão>::= <expressão simples> [<operador relacional><expressão simples>]
 
 
 <operador relacional>::= (<> | = | < | <= | > | >=)
 
 
-<expressÃ£o simples> ::= [ + | - ] <termo> {( + | - | ou) <termo> }
+<expressão simples> ::= [ + | - ] <termo> {( + | - | ou) <termo> }
 
 
-<termo>::= <fator> {(* | div | e) <fator>}<fator> ::= (<variÃ¡vel> |
-<nÃºmero> |
-<chamada de funÃ§Ã£o> |
-(<expressÃ£o>) | verdadeiro | falso
+<termo>::= <fator> {(* | div | e) <fator>}
+
+<fator> ::= (<variável> |
+<número> |
+<chamada de função> |
+(<expressão>) | verdadeiro | falso
 nao <fator>)
 
 
-<variÃ¡vel> ::= <identificador>
+<variável> ::= <identificador>
 
 
-<chamada de funÃ§Ã£o> ::= <identificador >
 
 
-//////////////////NÃšMEROS E IDENTIFICADORES////////////////
+
+//////////////////NÚMEROS E IDENTIFICADORES////////////////
 
 
-<identificador> ::= <letra> {<letra> | <dÃ­gito> | _ }
+<identificador> ::= <letra> {<letra> | <dígito> | _ }
 
 
-<nÃºmero> ::= <dÃ­gito> {<dÃ­gito>}
+<número> ::= <dígito> {<dígito>}
 
 
-<dÃ­gito> ::= (0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9)
+<dígito> ::= (0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9)
 
 
 <letra> ::= (a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|
