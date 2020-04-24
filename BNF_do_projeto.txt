@@ -26,12 +26,12 @@
 
 
 <declaração de procedimento> ::= procedimento <identificador>; |
-procedimento <identificador> "("<declaração de variáveis>")";
+procedimento <identificador>(<declaração de variáveis>);
 <bloco>
 
 
 <declaração de função> ::= funcao <identificador>: <tipo>; |
-funcao <identificador>: <tipo> "("<Declaração de variáveis>")";
+funcao <identificador>: <tipo>(<Declaração de variáveis>);
 <bloco>
 
 
@@ -72,7 +72,7 @@ fim
 entao <comando>
 [senao <comando>]
 
-<comando incondicional> ::= (continue | break)
+<comando incondicional> ::= continue <comando enquanto> | break
 
 
 <comando enquanto> ::= enquanto <expressão> faca <comando>
